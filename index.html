@@ -121,7 +121,7 @@
             </div>
             <button id="loginBtn" class="btn-primary w-full py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2"><i class="fas fa-lock-open"></i> Authenticate</button>
           </div>
-          <div class="mt-6 text-center text-gray-500 text-xs border-t border-gray-800 pt-5"><i class="fab fa-linkedin"></i> LinkedIn · <i class="fab fa-google"></i> Google · <i class="fab fa-wikipedia-w"></i> Wikipedia</div>
+          <div class="mt-6 text-center text-gray-500 text-xs border-t border-gray-800 pt-5"><i class="fab fa-linkedin"></i> LinkedIn · <i class="fab fa-google"></i> Google · <i class="fab fa-wikipedia-w"></i> Wikipedia · <i class="fab fa-github"></i> GitHub</div>
         </div>
       `;
       document.getElementById('loginBtn')?.addEventListener('click', () => {
@@ -130,7 +130,7 @@
         currentToken = token;
         localStorage.setItem('evans_auth_token', token);
         messages = [];
-        messages.push({ id: Date.now(), role: 'ai', content: `✨ **Evans AI** — I search **LinkedIn**, **Google**, **Wikipedia**, **Stack Overflow** & **GitHub** to give you factual answers, people profiles, and working code. Ask about anyone or anything.` });
+        messages.push({ id: Date.now(), role: 'ai', content: `✨ **Evans AI** — I search **LinkedIn** and **Google** for people, and **Wikipedia**, **Stack Overflow**, **GitHub** for technical answers. Ask about anyone or anything.` });
         render();
       });
       document.getElementById('tokenInput')?.addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
@@ -138,7 +138,7 @@
 
     function logout() { localStorage.removeItem('evans_auth_token'); currentToken = null; messages = []; isLoading = false; render(); }
 
-    // ---------- API FETCHERS ----------
+    // ---------- API FETCHERS (only for tech queries) ----------
     async function fetchWikipedia(query) {
       try {
         const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*&srlimit=1`;
@@ -192,13 +192,11 @@
       } catch(e) { return null; }
     }
 
-    // ---------- PEOPLE DETECTION + LINKEDIN/GOOGLE SEARCH ----------
+    // ---------- PERSON DETECTION + ONLY LINKEDIN/GOOGLE (NO WIKIPEDIA) ----------
     function isPersonQuery(query) {
       const lower = query.toLowerCase();
-      // explicit person indicators
       if (lower.match(/who is|about me|tell me about|biography of|profile of|background of/i)) return true;
-      // if query is short and not code-heavy (simple heuristic)
-      const codeKeywords = ['function', 'code', 'api', 'react', 'python', 'javascript', 'html', 'css', 'sort', 'algorithm'];
+      const codeKeywords = ['function', 'code', 'api', 'react', 'python', 'javascript', 'html', 'css', 'sort', 'algorithm', 'github', 'stackoverflow'];
       const hasCodeKeyword = codeKeywords.some(kw => lower.includes(kw));
       if (!hasCodeKeyword && query.split(' ').length <= 5 && query.length > 3) return true;
       return false;
@@ -211,30 +209,26 @@
       return { googleSearch, linkedinSearch };
     }
 
-    // ---------- MAIN ANSWER ENGINE (no heading, includes people search) ----------
+    // ---------- MAIN ANSWER ENGINE (NO HEADER) ----------
     async function generateAnswer(query) {
       const lowerQuery = query.toLowerCase();
       const isPerson = isPersonQuery(query);
       let answer = "";
 
-      // --- Person mode: prioritize Wikipedia + LinkedIn/Google links ---
+      // --- Person mode: ONLY LinkedIn + Google (no Wikipedia) ---
       if (isPerson) {
-        const wiki = await fetchWikipedia(query);
         const { googleSearch, linkedinSearch } = getPersonSearchLinks(query);
+        answer += `🔍 **Live search for "${query}"**\n\n`;
+        answer += `• <i class="fab fa-linkedin"></i> **LinkedIn**: [View professional profiles](${linkedinSearch})\n`;
+        answer += `• <i class="fab fa-google"></i> **Google**: [Search across the web](${googleSearch})\n\n`;
+        answer += `> Evans avoids Wikipedia for people — use the links above for the most recent and accurate professional information.`;
         
-        if (wiki && wiki.extract) {
-          answer += `**📖 Wikipedia – ${wiki.title}**\n> ${wiki.extract.substring(0, 700)}${wiki.extract.length > 700 ? '…' : ''}\n\n`;
-        } else {
-          answer += `🔍 No Wikipedia article found for "${query}", but here are live search results:\n\n`;
-        }
-        
-        answer += `### 🔎 Real‑time People Search\n\n`;
-        answer += `- <i class="fab fa-google"></i> **Google Search**: [${query} on Google](${googleSearch})\n`;
-        answer += `- <i class="fab fa-linkedin"></i> **LinkedIn Profiles**: [Find "${query}" on LinkedIn](${linkedinSearch})\n\n`;
-        answer += `> *Evans suggests using these links to get the most recent professional information.*\n\n`;
-        
-        // also add generic knowledge if any
-        answer += `---\n*If you need code or technical help, ask me that too.*`;
+        // source badges for person mode
+        answer += `<div class="flex flex-wrap gap-2 text-[11px] text-gray-400 mt-3">`;
+        answer += `<span class="source-badge"><i class="fab fa-linkedin"></i> LinkedIn</span>`;
+        answer += `<span class="source-badge"><i class="fab fa-google"></i> Google</span>`;
+        answer += `<span class="source-badge"><i class="fas fa-brain"></i> Evans AI</span>`;
+        answer += `</div>`;
         return answer;
       }
       
@@ -259,7 +253,7 @@
         }
       }
       
-      // --- Generate working code if relevant (always useful) ---
+      // --- Generate working code if relevant (always helpful) ---
       let codeExample = "";
       if (lowerQuery.includes("debounce") && (lowerQuery.includes("javascript") || lowerQuery.includes("js"))) {
         codeExample = `\`\`\`javascript
@@ -334,7 +328,7 @@ print(binary_search([1,2,3,4,5], 3))  # 2
       
       if (!wiki && !so && !github && !codeExample) {
         answer += `⚠️ Evans couldn’t retrieve live sources, but here’s expert knowledge: `;
-        answer += `*For accurate results, try rephrasing or asking about a specific person, algorithm, or library.*`;
+        answer += `*For accurate results, try rephrasing or asking about a specific algorithm, library, or technical concept.*`;
       }
       
       // Append source credits elegantly
@@ -342,14 +336,13 @@ print(binary_search([1,2,3,4,5], 3))  # 2
       if (wiki) answer += `<span class="source-badge"><i class="fab fa-wikipedia-w"></i> Wikipedia</span>`;
       if (so) answer += `<span class="source-badge"><i class="fab fa-stack-overflow"></i> Stack Overflow</span>`;
       if (github) answer += `<span class="source-badge"><i class="fab fa-github"></i> GitHub</span>`;
-      if (isPerson) answer += `<span class="source-badge"><i class="fab fa-linkedin"></i> LinkedIn</span><span class="source-badge"><i class="fab fa-google"></i> Google</span>`;
       answer += `<span class="source-badge"><i class="fas fa-brain"></i> Evans AI</span>`;
       answer += `</div>`;
       
       return answer;
     }
 
-    // ---------- CHAT UI (no changes to outer design) ----------
+    // ---------- CHAT UI ----------
     function renderChatDashboard() {
       rootEl.innerHTML = `
         <div class="glass-panel rounded-3xl w-full h-[85vh] flex flex-col overflow-hidden shadow-2xl">
