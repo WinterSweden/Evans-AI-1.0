@@ -1,0 +1,28 @@
+.body {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+.header, .footer {
+  background-color: #1e1e1e;
+  color: #ffffff;
+}
+
+.button {
+  background-color: #bb86fc;
+  color: #ffffff;
+}
+
+.input {
+  background-color: #333333;
+  color: #ffffff;
+  border: 1px solid #444444;
+}
+
+.a {
+  color: #bb86fc;
+}
+
+.a:hover {
+  color: #3700b3;
+}
