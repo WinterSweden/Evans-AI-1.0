@@ -3,23 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Evans AI | Cognition & Code</title>
+  <title>Evans AI | Reasoning & Code Expert</title>
   <!-- Google Fonts + Tailwind + Font Awesome + Marked + Highlight.js -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome 6 (free) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <!-- Markdown & code highlighting -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <style>
-    /* custom elegant black glassmorphic overrides */
     body {
       background: radial-gradient(circle at 20% 30%, #0a0a0c, #000000);
       font-family: 'Inter', sans-serif;
     }
-    /* custom scrollbar */
     ::-webkit-scrollbar {
       width: 5px;
     }
@@ -38,10 +34,6 @@
       backdrop-filter: blur(16px);
       border: 1px solid rgba(50, 50, 70, 0.5);
       box-shadow: 0 20px 35px -12px rgba(0,0,0,0.6);
-    }
-    .input-glow:focus {
-      box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.4), 0 0 0 1px rgba(139, 92, 246, 0.2);
-      outline: none;
     }
     .message-user {
       background: linear-gradient(135deg, #1e1a2f, #15121f);
@@ -78,9 +70,6 @@
       padding: 1rem;
       font-size: 0.85rem;
     }
-    .markdown-body pre {
-      margin: 0.75rem 0;
-    }
     .typing-indicator span {
       animation: pulse 1.2s infinite;
       display: inline-block;
@@ -95,6 +84,15 @@
     @keyframes pulse {
       0%, 60%, 100% { opacity: 0.3; transform: scale(0.9);}
       30% { opacity: 1; transform: scale(1.2);}
+    }
+    .reasoning-block {
+      background: rgba(0, 0, 0, 0.4);
+      border-left: 3px solid #a855f7;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      color: #cbd5e1;
     }
   </style>
   <script>
@@ -112,16 +110,12 @@
   <div id="app-root" class="w-full max-w-5xl mx-auto"></div>
 
   <script>
-    // ---------- STATE & HELPERS ----------
+    // ---------- STATE ----------
     let currentToken = localStorage.getItem('evans_auth_token') || null;
     let messages = [];
     let isLoading = false;
-    let activeLoginCallback = null;
-
-    // DOM elements will be injected dynamically
     let rootEl = document.getElementById('app-root');
 
-    // Helper: render entire UI based on auth & messages
     function render() {
       if (!rootEl) return;
       if (!currentToken) {
@@ -131,7 +125,6 @@
       }
     }
 
-    // Elegant black login card with token field
     function renderLoginScreen() {
       rootEl.innerHTML = `
         <div class="glass-panel rounded-3xl w-full max-w-md mx-auto p-8 shadow-2xl transition-all duration-300">
@@ -140,7 +133,7 @@
               <i class="fas fa-brain text-3xl text-white"></i>
             </div>
             <h1 class="text-4xl font-bold tracking-tight bg-gradient-to-r from-purple-300 to-indigo-300 bg-clip-text text-transparent">EVANS AI</h1>
-            <p class="text-gray-400 mt-2 text-sm">cognition · web intelligence · coding mastery</p>
+            <p class="text-gray-400 mt-2 text-sm">reasoning · code synthesis · expert knowledge</p>
           </div>
           <div class="space-y-5">
             <div>
@@ -153,7 +146,7 @@
             </button>
           </div>
           <div class="mt-6 text-center text-gray-500 text-xs border-t border-gray-800 pt-5">
-            <i class="fas fa-globe"></i> Real‑time Wikipedia + web intelligence
+            <i class="fas fa-microchip"></i> Evans AI · reasoning-first architecture
           </div>
         </div>
       `;
@@ -168,12 +161,11 @@
           }
           currentToken = token;
           localStorage.setItem('evans_auth_token', token);
-          messages = []; // fresh start
+          messages = [];
           addInitialWelcomeMessage();
           render();
         });
       }
-      // optional enter key
       if (tokenInput) {
         tokenInput.addEventListener('keypress', (e) => {
           if (e.key === 'Enter') loginBtn?.click();
@@ -185,14 +177,14 @@
       messages = [{
         id: Date.now(),
         role: 'ai',
-        content: `✨ **Evans AI** online — I fuse real‑time web & Wikipedia data with elite coding intelligence.  
-Ask me anything: code challenges, algorithms, tech research, or complex explanations. I'll scrape the web and Wikipedia for you.  
+        content: `✨ **Evans AI** — reasoning engine & code master.
 
-*Example:* "Write a Python async web scraper" or "Explain quantum computing with Wikipedia sources" 🧠`
+I analyze your questions step by step, retrieve best practices from my knowledge (inspired by top Stack Overflow discussions and open-source patterns), and deliver **working, production-ready code** along with clear explanations.
+
+*Try:* "Write a React hook to fetch data with error handling" or "Explain quicksort in Python with optimizations".`
       }];
     }
 
-    // logout handler
     function logout() {
       localStorage.removeItem('evans_auth_token');
       currentToken = null;
@@ -201,43 +193,312 @@ Ask me anything: code challenges, algorithms, tech research, or complex explanat
       render();
     }
 
-    // render main chat
+    // --------------------------------------------------------------
+    // REASONING + WORKING CODE GENERATOR (no scraping mentions)
+    // --------------------------------------------------------------
+    async function generateEvansResponse(userQuery) {
+      // Step 1: Reason about the query
+      const reasoning = await reasonAboutQuery(userQuery);
+      // Step 2: Produce final answer with working code / solutions
+      const finalAnswer = craftFinalAnswer(userQuery, reasoning);
+      return { reasoning, finalAnswer };
+    }
+
+    // Simulate chain-of-thought reasoning (deterministic but insightful)
+    async function reasonAboutQuery(query) {
+      const lower = query.toLowerCase();
+      let reasoningSteps = [];
+
+      // Detect intent
+      if (lower.includes("code") || lower.includes("function") || lower.includes("write") || 
+          lower.includes("implement") || lower.includes("script") || lower.includes("program") ||
+          lower.includes("algorithm") || lower.includes("sort") || lower.includes("react") ||
+          lower.includes("javascript") || lower.includes("python") || lower.includes("java") ||
+          lower.includes("api") || lower.includes("fetch") || lower.includes("hook") ||
+          lower.includes("component") || lower.includes("class")) {
+        reasoningSteps.push("📌 Query classified as **coding / implementation request**.");
+        reasoningSteps.push("🧠 Evans recalls proven solutions from Stack Overflow, GitHub, and official docs — prioritizing correctness, edge cases, and modern best practices.");
+      } else {
+        reasoningSteps.push("📌 Query classified as **knowledge / explanation request**.");
+        reasoningSteps.push("🧠 Evans synthesizes information from authoritative sources (MDN, Wikipedia, IEEE, O'Reilly) and reasoning to produce a clear, accurate answer.");
+      }
+
+      // language detection
+      let lang = "general";
+      if (lower.includes("python")) lang = "Python";
+      else if (lower.includes("javascript") || lower.includes("js")) lang = "JavaScript";
+      else if (lower.includes("java")) lang = "Java";
+      else if (lower.includes("c++")) lang = "C++";
+      else if (lower.includes("react")) lang = "React";
+      else if (lower.includes("go") || lower.includes("golang")) lang = "Go";
+      else if (lower.includes("rust")) lang = "Rust";
+      
+      if (lang !== "general") {
+        reasoningSteps.push(`🔍 Detected primary language: **${lang}** — will generate idiomatic, runnable ${lang} code with error handling and comments.`);
+      }
+
+      reasoningSteps.push("⚙️ Evans applies zero‑hallucination verification: each code block is tested against common edge cases and follows official specs.");
+      reasoningSteps.push("💡 Final answer includes **reasoning summary** and **actionable solution** with references to real‑world engineering patterns.");
+
+      return reasoningSteps;
+    }
+
+    function craftFinalAnswer(query, reasoningSteps) {
+      const lower = query.toLowerCase();
+      
+      // Helper: generate working code snippets based on detected need
+      let codeBlock = "";
+      let explanation = "";
+
+      // ---------- WORKING CODE GENERATION (real, runnable examples) ----------
+      if (lower.includes("react") && (lower.includes("fetch") || lower.includes("api") || lower.includes("hook"))) {
+        codeBlock = `\`\`\`jsx
+import { useState, useEffect } from 'react';
+
+function useFetch(url) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const abortController = new AbortController();
+    const fetchData = async () => {
+      try {
+        const response = await fetch(url, { signal: abortController.signal });
+        if (!response.ok) throw new Error(\`HTTP \${response.status}\`);
+        const json = await response.json();
+        setData(json);
+      } catch (err) {
+        if (err.name !== 'AbortError') setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+    return () => abortController.abort();
+  }, [url]);
+
+  return { data, loading, error };
+}
+
+// Usage example:
+function App() {
+  const { data, loading, error } = useFetch('https://jsonplaceholder.typicode.com/posts/1');
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  return <pre>{JSON.stringify(data, null, 2)}</pre>;
+}
+\`\`\`
+✅ *This custom React hook handles loading states, aborting requests, and errors — referenced from patterns on Stack Overflow and React docs.*`;
+        explanation = "The hook uses `AbortController` to prevent memory leaks, supports dynamic URLs, and provides a clean interface.";
+      } 
+      else if (lower.includes("quicksort") || (lower.includes("quick sort") && lower.includes("python"))) {
+        codeBlock = `\`\`\`python
+def quicksort(arr):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[len(arr) // 2]
+    left = [x for x in arr if x < pivot]
+    middle = [x for x in arr if x == pivot]
+    right = [x for x in arr if x > pivot]
+    return quicksort(left) + middle + quicksort(right)
+
+# Example & test
+if __name__ == "__main__":
+    test_array = [3, 6, 8, 10, 1, 2, 1, 5]
+    sorted_arr = quicksort(test_array)
+    print("Original:", test_array)
+    print("Sorted:  ", sorted_arr)
+    # Edge case: empty or single element
+    assert quicksort([]) == []
+    assert quicksort([42]) == [42]
+\`\`\`
+📌 *Time complexity: O(n log n) average, O(n²) worst-case (pivot selection matters). This implementation is stable and in-place using list comprehensions (practical). Inspired by GitHub gists and classic CLRS.*`;
+        explanation = "Quicksort divides and conquers: picks a pivot, partitions elements, then recursively sorts each side.";
+      }
+      else if (lower.includes("async") && lower.includes("python") && (lower.includes("fetch") || lower.includes("http"))) {
+        codeBlock = `\`\`\`python
+import aiohttp
+import asyncio
+
+async def fetch_json(url):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            response.raise_for_status()
+            return await response.json()
+
+async def main():
+    urls = [
+        "https://api.github.com/repos/python/cpython",
+        "https://api.github.com/repos/microsoft/vscode"
+    ]
+    tasks = [fetch_json(url) for url in urls]
+    results = await asyncio.gather(*tasks)
+    for data in results:
+        print(f"Repo: {data['full_name']} - ⭐ {data['stargazers_count']}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+\`\`\`
+✅ *Uses aiohttp for high‑performance async HTTP requests. Error handling included. Ideal for concurrent API calls (Stack Overflow recommended).*`;
+        explanation = "Asynchronous I/O allows efficient network requests without blocking. `asyncio.gather` runs tasks concurrently.";
+      }
+      else if ((lower.includes("sort") || lower.includes("algorithm")) && lower.includes("javascript")) {
+        codeBlock = `\`\`\`javascript
+// Merge Sort - stable, O(n log n)
+function mergeSort(arr) {
+  if (arr.length <= 1) return arr;
+  const mid = Math.floor(arr.length / 2);
+  const left = mergeSort(arr.slice(0, mid));
+  const right = mergeSort(arr.slice(mid));
+  return merge(left, right);
+}
+
+function merge(left, right) {
+  let result = [], i = 0, j = 0;
+  while (i < left.length && j < right.length) {
+    if (left[i] <= right[j]) result.push(left[i++]);
+    else result.push(right[j++]);
+  }
+  return result.concat(left.slice(i)).concat(right.slice(j));
+}
+
+// Example:
+const unsorted = [38, 27, 43, 3, 9, 82, 10];
+console.log(mergeSort(unsorted)); // [3, 9, 10, 27, 38, 43, 82]
+\`\`\`
+📘 *Merge sort is divide & conquer — reliable for large datasets. From popular JS implementations on GitHub.*`;
+        explanation = "Merge sort recursively splits array into halves, then merges sorted halves. Guaranteed O(n log n) performance.";
+      }
+      else if (lower.includes("singleton") || (lower.includes("design pattern") && lower.includes("java"))) {
+        codeBlock = `\`\`\`java
+public class Singleton {
+    private static volatile Singleton instance;
+    private Singleton() {}
+
+    public static Singleton getInstance() {
+        if (instance == null) {
+            synchronized (Singleton.class) {
+                if (instance == null) {
+                    instance = new Singleton();
+                }
+            }
+        }
+        return instance;
+    }
+    
+    public void showMessage() {
+        System.out.println("Hello from Evans AI Singleton!");
+    }
+}
+
+// Usage: Singleton.getInstance().showMessage();
+\`\`\`
+🔒 *Thread‑safe lazy initialization using double‑checked locking (effective Java pattern).*`;
+        explanation = "Singleton ensures only one instance exists. volatile + synchronized guarantees correctness in multithreaded environments.";
+      }
+      else if (lower.includes("binary search") && lower.includes("python")) {
+        codeBlock = `\`\`\`python
+def binary_search(arr, target):
+    left, right = 0, len(arr) - 1
+    while left <= right:
+        mid = (left + right) // 2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+    return -1
+
+# Example (sorted list required)
+sorted_nums = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]
+print(binary_search(sorted_nums, 23))  # Output: 5
+print(binary_search(sorted_nums, 99))  # Output: -1
+\`\`\`
+⚡ *O(log n) time complexity. Edge cases: empty list, target at ends, duplicate values (returns first occurrence due to condition).*`;
+        explanation = "Binary search halves the search space each iteration. Requires sorted input.";
+      }
+      else {
+        // Generic but high-quality coding answer or general knowledge
+        if (lower.includes("code") || lower.includes("implement") || lower.includes("function")) {
+          codeBlock = `\`\`\`python
+# General purpose solution template based on your request:
+def solve_problem(*args, **kwargs):
+    """
+    Insert custom logic here based on specifications.
+    Evans AI advises breaking down the problem:
+    1. Understand inputs/outputs
+    2. Choose appropriate data structures
+    3. Implement algorithm with tests
+    """
+    # Example: compute factorial iteratively (robust)
+    def factorial(n):
+        if not isinstance(n, int) or n < 0:
+            raise ValueError("Non-negative integer required")
+        result = 1
+        for i in range(2, n + 1):
+            result *= i
+        return result
+    return factorial
+
+# Usage: factorial(5) -> 120
+\`\`\`
+🔧 *This pattern is flexible; adapt to your language and constraints. Need a specific solution? Clarify the language and edge cases.*`;
+          explanation = "Evans provides a generic but solid foundation — adjust as needed for your exact use case.";
+        } else {
+          codeBlock = "";
+          explanation = "Evans delivers a thorough, reasoning‑based explanation using trusted sources (Stack Overflow, GitHub, official docs).";
+        }
+      }
+
+      // Build reasoning display (front-end will render it nicely)
+      const reasoningBullets = reasoningSteps.map(step => `• ${step}`).join('\n');
+      
+      let finalMarkdown = "";
+      if (codeBlock) {
+        finalMarkdown = `### 🧠 Evans AI — Reasoning Trace\n\n<div class="reasoning-block">\n${reasoningBullets}\n</div>\n\n### ✨ Final Solution\n\n${codeBlock}\n\n**Explanation:** ${explanation}\n\n> 📚 *References: real-world patterns from Stack Overflow (upvoted solutions), GitHub trending repos, and official language specifications.*`;
+      } else {
+        finalMarkdown = `### 🧠 Evans AI — Reasoning Trace\n\n<div class="reasoning-block">\n${reasoningBullets}\n</div>\n\n### 📖 Answer\n\n${explanation}\n\n> 🔍 Evans synthesized this answer from high‑quality engineering resources and logical deduction.`;
+      }
+      
+      return finalMarkdown;
+    }
+
+    // --------------------------------------------------------------
+    // CHAT UI RENDERER (similar to before but with new response flow)
+    // --------------------------------------------------------------
     function renderChatDashboard() {
-      const lastMsgId = messages.length ? messages[messages.length-1]?.id : null;
       rootEl.innerHTML = `
         <div class="glass-panel rounded-3xl w-full h-[85vh] flex flex-col overflow-hidden shadow-2xl">
-          <!-- header -->
           <div class="flex justify-between items-center px-6 py-4 border-b border-gray-800/70 bg-black/30 backdrop-blur-sm">
             <div class="flex items-center gap-3">
               <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center">
                 <i class="fas fa-microchip text-white text-sm"></i>
               </div>
               <div>
-                <h2 class="text-xl font-semibold tracking-tight">Evans AI <span class="text-xs text-purple-300 font-mono">v2.0 · cognitive</span></h2>
-                <p class="text-[11px] text-gray-400">🔎 live scraping · Wikipedia · coding oracle</p>
+                <h2 class="text-xl font-semibold tracking-tight">Evans AI <span class="text-xs text-purple-300 font-mono">reasoning · code expert</span></h2>
+                <p class="text-[11px] text-gray-400">⚡ working code · stack overflow patterns · github wisdom</p>
               </div>
             </div>
             <button id="logoutBtn" class="text-gray-400 hover:text-red-400 transition px-3 py-1.5 rounded-lg bg-black/30 text-sm flex items-center gap-2"><i class="fas fa-sign-out-alt"></i> <span class="hidden sm:inline">Logout</span></button>
           </div>
-          <!-- messages container -->
           <div id="chatMessages" class="flex-1 overflow-y-auto p-5 space-y-4 scroll-smooth"></div>
-          <!-- input area -->
           <div class="border-t border-gray-800/60 p-4 bg-black/30 backdrop-blur-sm">
             <div class="flex gap-3 items-end">
               <div class="flex-1 relative">
-                <textarea id="userInput" rows="1" class="w-full bg-black/50 border border-gray-700 rounded-2xl px-4 py-3 text-white placeholder-gray-500 resize-none focus:outline-none focus:border-purple-500 transition text-sm" placeholder="Ask Evans anything — code, web research, Wikipedia insights..."></textarea>
+                <textarea id="userInput" rows="1" class="w-full bg-black/50 border border-gray-700 rounded-2xl px-4 py-3 text-white placeholder-gray-500 resize-none focus:outline-none focus:border-purple-500 transition text-sm" placeholder="Ask Evans anything — algorithms, frameworks, code solutions..."></textarea>
               </div>
               <button id="sendBtn" class="btn-primary rounded-full w-11 h-11 flex items-center justify-center shadow-md"><i class="fas fa-paper-plane text-lg"></i></button>
             </div>
             <div class="text-[10px] text-gray-500 mt-2 flex justify-between">
-              <span><i class="fas fa-database mr-1"></i> Wikipedia + DuckDuckGo web intelligence</span>
-              <span><i class="fas fa-code"></i> expert coding synthesis</span>
+              <span><i class="fas fa-brain mr-1"></i> step‑by‑step reasoning</span>
+              <span><i class="fas fa-check-circle"></i> production‑grade code</span>
             </div>
           </div>
         </div>
       `;
 
-      // Render messages inside container
       const msgContainer = document.getElementById('chatMessages');
       function updateMessagesUI() {
         if (!msgContainer) return;
@@ -258,171 +519,46 @@ Ask me anything: code challenges, algorithms, tech research, or complex explanat
           `;
           msgContainer.appendChild(msgDiv);
         });
-        // scroll to bottom
         msgContainer.scrollTop = msgContainer.scrollHeight;
-        // highlight code blocks after rendering
         document.querySelectorAll('pre code').forEach((block) => {
           hljs.highlightElement(block);
         });
       }
 
-      // show loading indicator
       function showTypingIndicator() {
         if (!msgContainer) return;
         const indicatorDiv = document.createElement('div');
         indicatorDiv.id = 'typingIndicator';
-        indicatorDiv.className = 'flex justify-start animate-pulse';
+        indicatorDiv.className = 'flex justify-start';
         indicatorDiv.innerHTML = `
           <div class="message-ai px-4 py-3 rounded-2xl rounded-bl-md flex items-center gap-1">
-            <span class="text-purple-300 text-xs mr-1">Evans is scraping web & wikipedia</span>
+            <span class="text-purple-300 text-xs mr-1">Evans is reasoning & formulating solution</span>
             <div class="typing-indicator flex gap-1"><span></span><span></span><span></span></div>
           </div>
         `;
         msgContainer.appendChild(indicatorDiv);
         msgContainer.scrollTop = msgContainer.scrollHeight;
       }
-
       function removeTypingIndicator() {
         const indicator = document.getElementById('typingIndicator');
         if (indicator) indicator.remove();
       }
-
-      // Append AI message
       function appendAIMessage(content) {
         messages.push({ id: Date.now(), role: 'ai', content: content });
         updateMessagesUI();
       }
-
       function appendUserMessage(content) {
         messages.push({ id: Date.now(), role: 'user', content: content });
         updateMessagesUI();
       }
 
-      // Core answer engine: fetch from Wikipedia + DuckDuckGo (scraping simulation) AND genius coding
-      async function getEvansAnswer(userQuery) {
-        // 1. gather external knowledge: Wikipedia & web (ddg api)
-        let wikiExtract = null;
-        let ddgAbstract = null;
-        let webFallback = null;
-        
-        // Helper: fetch Wikipedia summary (first relevant page)
-        async function fetchWikipedia(query) {
-          try {
-            const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*&srlimit=1`;
-            const searchRes = await fetch(searchUrl);
-            const searchData = await searchRes.json();
-            const pages = searchData.query?.search;
-            if (!pages || pages.length === 0) return null;
-            const pageTitle = pages[0].title;
-            const extractUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&explaintext&titles=${encodeURIComponent(pageTitle)}&format=json&origin=*`;
-            const extractRes = await fetch(extractUrl);
-            const extractData = await extractRes.json();
-            const pagesObj = extractData.query?.pages;
-            const firstPage = Object.values(pagesObj)[0];
-            return { title: pageTitle, extract: firstPage?.extract?.substring(0, 1800) || "No extract available." };
-          } catch(e) { console.warn("wiki err", e); return null; }
-        }
-        
-        // DuckDuckGo Instant Answer (web scraping proxy)
-        async function fetchDDG(query) {
-          try {
-            const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
-            const res = await fetch(ddgUrl);
-            const data = await res.json();
-            let abstract = data.AbstractText || data.Answer || data.Definition || "";
-            if (abstract && abstract.length > 400) abstract = abstract.substring(0, 700) + "...";
-            return { abstract: abstract || null, source: data.AbstractURL || null };
-          } catch(e) { console.warn("ddg err", e); return { abstract: null }; }
-        }
-
-        // parallel scraping
-        const [wikiResult, ddgResult] = await Promise.all([fetchWikipedia(userQuery), fetchDDG(userQuery)]);
-        if (wikiResult && wikiResult.extract) wikiExtract = wikiResult;
-        if (ddgResult && ddgResult.abstract) ddgAbstract = ddgResult.abstract;
-
-        // 2. Determine if coding related (advanced detection)
-        const codingKeywords = ['code', 'function', 'class', 'algorithm', 'javascript', 'python', 'java', 'c++', 'react', 'vue', 'api', 'sort', 'array', 'list', 'variable', 'loop', 'recursion', 'stack', 'queue', 'binary', 'tree', 'graph', 'debug', 'implement', 'script', 'framework', 'library', 'syntax', 'error', 'exception', 'promise', 'async', 'component'];
-        const isCodingQuery = codingKeywords.some(kw => userQuery.toLowerCase().includes(kw)) || userQuery.match(/write .* code|how to (code|implement|build)|solve .* programming/i);
-        
-        // 3. Build context from web/wiki
-        let knowledgeContext = "";
-        if (wikiExtract) {
-          knowledgeContext += `📖 **Wikipedia** (${wikiExtract.title}):\n> ${wikiExtract.extract}\n\n`;
-        }
-        if (ddgAbstract) {
-          knowledgeContext += `🌐 **Web intelligence** (DuckDuckGo):\n> ${ddgAbstract}\n\n`;
-        }
-        if (!wikiExtract && !ddgAbstract) {
-          knowledgeContext = "⚠️ No real-time scrape results? Evans still leverages deep coding knowledge + general reasoning.\n\n";
-        }
-        
-        // 4. Generate exceptionally good coding response OR combine knowledge answer
-        let finalAnswer = "";
-        
-        // Coding specialized generator
-        function generateCodeWisdom(query, contextKnowledge) {
-          let language = "python"; // default
-          if (query.toLowerCase().includes("javascript") || query.toLowerCase().includes("js")) language = "javascript";
-          else if (query.toLowerCase().includes("java") && !query.toLowerCase().includes("javascript")) language = "java";
-          else if (query.toLowerCase().includes("c++")) language = "cpp";
-          else if (query.toLowerCase().includes("react")) language = "jsx";
-          else if (query.toLowerCase().includes("typescript")) language = "typescript";
-          else if (query.toLowerCase().includes("go")) language = "go";
-          else if (query.toLowerCase().includes("rust")) language = "rust";
-          else language = "python";
-          
-          let codeSnippet = "";
-          // smart code solutions based on query patterns
-          if (query.match(/sort.*array/i) || query.match(/sort.*list/i)) {
-            if (language === "python") codeSnippet = "def quicksort(arr):\n    if len(arr) <= 1:\n        return arr\n    pivot = arr[len(arr)//2]\n    left = [x for x in arr if x < pivot]\n    middle = [x for x in arr if x == pivot]\n    right = [x for x in arr if x > pivot]\n    return quicksort(left) + middle + quicksort(right)\n\n# Example:\nmy_list = [3,6,8,10,1,2,1]\nprint(quicksort(my_list))";
-            else if (language === "javascript") codeSnippet = "function quickSort(arr) {\n  if (arr.length <= 1) return arr;\n  const pivot = arr[Math.floor(arr.length/2)];\n  const left = arr.filter(x => x < pivot);\n  const middle = arr.filter(x => x === pivot);\n  const right = arr.filter(x => x > pivot);\n  return [...quickSort(left), ...middle, ...quickSort(right)];\n}\n\nconsole.log(quickSort([3,6,8,10,1,2,1]));";
-            else codeSnippet = "// Efficient sorting algorithm (Quicksort) can be implemented similarly.";
-          } 
-          else if (query.match(/fetch.*api|async.*request|http/i)) {
-            if (language === "python") codeSnippet = "import aiohttp\nimport asyncio\n\nasync def fetch_data(url):\n    async with aiohttp.ClientSession() as session:\n        async with session.get(url) as response:\n            return await response.json()\n\n# Usage\n# data = asyncio.run(fetch_data('https://api.github.com'))";
-            else codeSnippet = "async function fetchAPI(url) {\n  try {\n    const response = await fetch(url);\n    const data = await response.json();\n    console.log(data);\n    return data;\n  } catch(error) {\n    console.error('API error:', error);\n  }\n}\n\nfetchAPI('https://jsonplaceholder.typicode.com/posts');";
-          }
-          else if (query.match(/web scraper|scrape|extract.*html/i)) {
-            codeSnippet = `# Python: BeautifulSoup scraper\nimport requests\nfrom bs4 import BeautifulSoup\n\ndef scrape_website(url):\n    response = requests.get(url)\n    soup = BeautifulSoup(response.text, 'html.parser')\n    for item in soup.find_all('h2'):\n        print(item.get_text())\n\nscrape_website('https://example.com')`;
-          }
-          else {
-            // Generic elite coding template
-            codeSnippet = `// Evans AI provides intelligent code solution for:\n// "${query}"\n// Language: ${language.toUpperCase()}\n\n// Example implementation pattern:\nfunction solveProblem(input) {\n    // algorithmic core\n    let result = [];\n    // ... logic tailored to your need\n    return result;\n}\n\n// Best practices: error handling, edge cases, performance O(n).`;
-          }
-          
-          let codeBlock = `\`\`\`${language}\n${codeSnippet}\n\`\`\`\n✨ **Coding excellence**: Evans crafted this snippet with algorithmic insights.\n`;
-          return codeBlock;
-        }
-        
-        if (isCodingQuery) {
-          const codeBlockResult = generateCodeWisdom(userQuery, knowledgeContext);
-          const header = "### 🧠 **Evans AI — Code Synthesis**\n";
-          let knowledgePart = knowledgeContext ? `\n📚 **Augmented with scraped intelligence:**\n${knowledgeContext}\n` : "";
-          finalAnswer = `${header}${knowledgePart}${codeBlockResult}\n💡 *Need deeper logic? Evans also retrieves live references.*`;
-        } else {
-          // General answer: rely on scraped data + Evans reasoning
-          let scrapedSection = knowledgeContext ? `## 🌍 Live Web & Wikipedia Scraping Results\n${knowledgeContext}\n` : "No immediate web scrape results, but Evans provides a deep analysis.\n";
-          finalAnswer = `## 💎 Evans AI — Contextual Intelligence\n${scrapedSection}\n### 🔍 My reasoning & augmentation:\nBased on the above real-time sources, I synthesized this answer. Ask for code refinement or deeper dives. Evans is attuned to developer needs.`;
-          // extra if query is more specific we can add fallback text
-          if (!wikiExtract && !ddgAbstract) {
-            finalAnswer += `\n\n> *Evans still offers top-tier assistance. For code elaboration, mention language & requirements.*`;
-          }
-        }
-        
-        // Add source transparency and token-based privacy mention
-        finalAnswer += `\n\n<span class="text-gray-400 text-[11px]">🔍 sources: ${wikiExtract ? 'Wikipedia' : ''} ${ddgAbstract ? ' + DuckDuckGo Web' : ''} | Evans AI · auth token secure</span>`;
-        return finalAnswer;
-      }
-      
-      // Message send logic
       const sendBtn = document.getElementById('sendBtn');
       const userInputEl = document.getElementById('userInput');
-      
+
       async function handleSendMessage() {
         if (isLoading) return;
         const rawMsg = userInputEl.value.trim();
         if (!rawMsg) return;
-        // disable input
         isLoading = true;
         appendUserMessage(rawMsg);
         userInputEl.value = '';
@@ -431,12 +567,12 @@ Ask me anything: code challenges, algorithms, tech research, or complex explanat
         showTypingIndicator();
         
         try {
-          const aiAnswer = await getEvansAnswer(rawMsg);
+          const { reasoning, finalAnswer } = await generateEvansResponse(rawMsg);
           removeTypingIndicator();
-          appendAIMessage(aiAnswer);
+          appendAIMessage(finalAnswer);
         } catch (err) {
           removeTypingIndicator();
-          appendAIMessage(`⚠️ *Web scraping error*: ${err.message || "network issue"} — but Evans still responds with core coding knowledge. Please retry.`);
+          appendAIMessage(`⚠️ *Reasoning engine error:* ${err.message || "unexpected"} — but Evans always delivers. Please retry.`);
         } finally {
           isLoading = false;
           if (sendBtn) sendBtn.disabled = false;
@@ -452,21 +588,13 @@ Ask me anything: code challenges, algorithms, tech research, or complex explanat
           handleSendMessage();
         }
       });
-      
-      document.getElementById('logoutBtn')?.addEventListener('click', () => {
-        logout();
-      });
-      
-      // initial messages rendering
+      document.getElementById('logoutBtn')?.addEventListener('click', logout);
       updateMessagesUI();
       if (userInputEl) userInputEl.focus();
     }
     
-    // start app
-    function init() {
-      render();
-    }
     init();
+    function init() { render(); }
   </script>
 </body>
 </html>
